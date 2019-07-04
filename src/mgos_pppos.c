@@ -40,6 +40,7 @@
 #include "mgos_utils.h"
 
 #define AT_CMD_TIMEOUT 2.0
+#define IDLE_TRIES 5
 
 enum mgos_pppos_state {
   PPPOS_IDLE = 0,
@@ -65,8 +66,8 @@ struct mgos_pppos_data {
   enum mgos_pppos_state state;
   struct mbuf data;
   double delay, deadline;
-  bool baud_ok, cmd_mode;
-  int attempt;
+  bool baud_ok, cmd_mode, resetSIM;
+  int attempt, idle_tries;
   mgos_timer_id poll_timer_id;
 
   struct mgos_pppos_cmd *cmds;
@@ -370,6 +371,12 @@ static bool mgos_pppos_cgreg_creg_cb(void *cb_arg, bool ok, struct mg_str data) 
   switch (st) {
     case 0:
       sts = "idle";
+      pd->idle_tries++;
+      if(pd->idle_tries > IDLE_TRIES){
+          pd->resetSIM = true;
+          LOG(LL_ERROR, ("Modem's been idle too long, trying to reset SIM"));
+          return false;
+      }
       break;
     case 1:
       sts = "home";
@@ -654,6 +661,11 @@ static void mgos_pppos_dispatch_once(struct mgos_pppos_data *pd) {
       add_cmd(pd, mgos_pppos_cimi_cb, "AT+CIMI");
       add_cmd(pd, mgos_pppos_ccid_cb, "AT+CCID");
       add_cmd(pd, mgos_pppos_cpin_cb, "AT+CPIN?");
+      if (pd->resetSIM){
+          pd->idle_tries = 0;
+          pd->resetSIM = false;
+          add_cmd(pd, NULL, "AT+CFUN=0"); /* Airplane Mode */
+      }
       add_cmd(pd, NULL, "AT+CFUN=1"); /* Full functionality */
       if(!pd->cfg->use_cgreg) add_cmd(pd, mgos_pppos_cgreg_creg_cb, "AT+CREG?");
       else add_cmd(pd, mgos_pppos_cgreg_creg_cb, "AT+CGREG?");
@@ -1011,6 +1023,8 @@ bool mgos_pppos_create(const struct mgos_config_pppos *cfg, int if_instance) {
   pd->cfg = cfg;
   pd->if_instance = if_instance;
   pd->state = PPPOS_IDLE;
+  pd->idle_tries = 0;
+  pd->resetSIM = false;
   if (pd->cfg->dtr_gpio >= 0) {
     mgos_gpio_setup_output(pd->cfg->dtr_gpio, !pd->cfg->dtr_act);
   }
