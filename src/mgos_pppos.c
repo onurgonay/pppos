@@ -346,16 +346,24 @@ static bool mgos_pppos_cpin_cb(void *cb_arg, bool ok, struct mg_str data) {
   return true;
 }
 
-static bool mgos_pppos_creg_cb(void *cb_arg, bool ok, struct mg_str data) {
+static bool mgos_pppos_cgreg_creg_cb(void *cb_arg, bool ok, struct mg_str data) {
   struct mgos_pppos_data *pd = (struct mgos_pppos_data *) cb_arg;
   if (!ok) {
-    LOG(LL_WARN, ("%s response to AT+CREG, proceeding anyway", "Error"));
+    if(!pd->cfg->use_cgreg) LOG(LL_WARN, ("%s response to AT+CREG, proceeding anyway", "Error"));
+    else LOG(LL_WARN, ("%s response to AT+CGREG, proceeding anyway", "Error"));
     return true;
   }
   int n, st;
-  if (sscanf(data.p, "+CREG: %d,%d", &n, &st) != 2) {
-    LOG(LL_WARN, ("%s response to AT+CREG, proceeding anyway", "Unknown"));
-    return true;
+  if(pd->cfg->use_cgreg) {
+    if (sscanf(data.p, "+CGREG: %d,%d", &n, &st) != 2) {
+      LOG(LL_WARN, ("%s response to AT+CGREG, proceeding anyway", "Unknown"));
+      return true;
+    }
+  } else {
+    if (sscanf(data.p, "+CREG: %d,%d", &n, &st) != 2) {
+      LOG(LL_WARN, ("%s response to AT+CREG, proceeding anyway", "Unknown"));
+      return true;
+    }
   }
   ok = false;
   const char *sts = NULL;
@@ -637,7 +645,8 @@ static void mgos_pppos_dispatch_once(struct mgos_pppos_data *pd) {
       add_cmd(pd, mgos_pppos_ccid_cb, "AT+CCID");
       add_cmd(pd, mgos_pppos_cpin_cb, "AT+CPIN?");
       add_cmd(pd, NULL, "AT+CFUN=1"); /* Full functionality */
-      add_cmd(pd, mgos_pppos_creg_cb, "AT+CREG?");
+      if(!pd->cfg->use_cgreg) add_cmd(pd, mgos_pppos_cgreg_creg_cb, "AT+CREG?");
+      else add_cmd(pd, mgos_pppos_cgreg_creg_cb, "AT+CGREG?");
       add_cmd(pd, mgos_pppos_at_cb, "AT+COPS=3,0");
       add_cmd(pd, mgos_pppos_cops_cb, "AT+COPS?");
       add_cmd(pd, mgos_pppos_csq_cb, "AT+CSQ");

@@ -37,6 +37,7 @@ config_schema:
   - ["pppos.echo_interval", "i", 10, {title: "LCP Echo interval, seconds"}]
   - ["pppos.echo_fails", "i", 3, {title: "Number of failed echos before connection is declared dead and retried"}]
   - ["pppos.hexdump_enable", "b", false, {title: "Dump all the data sent over UART to stderr"}]
+  - ["pppos.use_cgreg", "b", false, {title: "Use CGREG instead of CREG for network registration status"}]
 conds:
   # ESP32 sets LwIP options via sdkconfig, for other platforms use cdefs directly.
   - when: mos.platform == "esp32"
