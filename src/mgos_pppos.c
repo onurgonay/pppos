@@ -490,6 +490,11 @@ static void mgos_pppos_dispatch_once(struct mgos_pppos_data *pd) {
         mgos_pppos_set_state(pd, PPPOS_IDLE);
         break;
       }
+      if (pd->cfg->apn_slot < 1 || pd->cfg->apn_slot > 16) {
+        LOG(LL_ERROR, ("apn_lot is out of bounds"));
+        mgos_pppos_set_state(pd, PPPOS_IDLE);
+        break;
+      }
       mbuf_free(&pd->data);
       mbuf_init(&pd->data, 0);
       mg_strfree(&pd->ati_resp);
@@ -656,7 +661,7 @@ static void mgos_pppos_dispatch_once(struct mgos_pppos_data *pd) {
       add_cmd(pd, mgos_pppos_cops_cb, "AT+COPS?");
       add_cmd(pd, mgos_pppos_csq_cb, "AT+CSQ");
       add_cmd(pd, NULL, "AT+CREG=0"); /* Disable unsolicited reports */
-      add_cmd(pd, NULL, "AT+CGDCONT=1,\"IP\",\"%s\"", pd->cfg->apn);
+      if(!pd->cfg->skip_apn_set) add_cmd(pd, NULL, "AT+CGDCONT=%d,\"IP\",\"%s\"", pd->cfg->apn_slot, pd->cfg->apn);
       add_cmd(pd, mgos_pppos_atd_cb, pd->cfg->dial_cmd);
       mgos_pppos_set_state(pd, PPPOS_CMD);
       (void) apn;
