@@ -664,17 +664,17 @@ static void mgos_pppos_dispatch_once(struct mgos_pppos_data *pd) {
       if (pd->resetSIM){
           pd->idle_tries = 0;
           pd->resetSIM = false;
-          add_cmd(pd, NULL, "AT+CFUN=0"); /* Airplane Mode */
+          add_cmd(pd, NULL, "AT+CFUN=4"); /* Airplane Mode */
       }
       add_cmd(pd, NULL, "AT+CFUN=1"); /* Full functionality */
+      if(!pd->cfg->skip_apn_set) add_cmd(pd, NULL, "AT+CGDCONT=%d,\"IP\",\"%s\"", pd->cfg->apn_slot, pd->cfg->apn);
+      add_cmd(pd, mgos_pppos_atd_cb, pd->cfg->dial_cmd);
       if(!pd->cfg->use_cgreg) add_cmd(pd, mgos_pppos_cgreg_creg_cb, "AT+CREG?");
       else add_cmd(pd, mgos_pppos_cgreg_creg_cb, "AT+CGREG?");
       add_cmd(pd, mgos_pppos_at_cb, "AT+COPS=3,0");
       add_cmd(pd, mgos_pppos_cops_cb, "AT+COPS?");
       add_cmd(pd, mgos_pppos_csq_cb, "AT+CSQ");
       add_cmd(pd, NULL, "AT+CREG=0"); /* Disable unsolicited reports */
-      if(!pd->cfg->skip_apn_set) add_cmd(pd, NULL, "AT+CGDCONT=%d,\"IP\",\"%s\"", pd->cfg->apn_slot, pd->cfg->apn);
-      add_cmd(pd, mgos_pppos_atd_cb, pd->cfg->dial_cmd);
       mgos_pppos_set_state(pd, PPPOS_CMD);
       (void) apn;
       break;
