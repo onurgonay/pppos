@@ -27,6 +27,7 @@ config_schema:
   - ["pppos.apn", "s", "", {title: "APN name"}]
   - ["pppos.apn_slot", "i", 1, {title: "APN slot (PDP) to use. From 1 to 16"}]
   - ["pppos.skip_apn_set", "b", false, {title: "Whether skip setting the APN"}]
+  - ["pppos.set_vzw_apns", "b", false, {title: "Set the 'stock' APNs required for working with Verizon"}]
   - ["pppos.user", "s", "", {title: "User name"}]
   - ["pppos.pass", "s", "", {title: "Password"}]
   - ["pppos.connect_on_startup", "b", true, {title: "Connect immediately on startup"}]

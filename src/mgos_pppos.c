@@ -667,6 +667,13 @@ static void mgos_pppos_dispatch_once(struct mgos_pppos_data *pd) {
           add_cmd(pd, NULL, "AT+CFUN=0"); /* Airplane Mode */
       }
       add_cmd(pd, NULL, "AT+CFUN=1"); /* Full functionality */
+      if(pd->cfg->set_vzw_apns){
+          add_cmd(pd, NULL, "AT+CGDCONT=1,\"IPV4V6\",\"VZWIMS\"");
+          add_cmd(pd, NULL, "AT+CGDCONT=2,\"IPV4V6\",\"VZWADMIN\"");
+          add_cmd(pd, NULL, "AT+CGDCONT=4,\"IPV4V6\",\"VZWAPP\"");
+          add_cmd(pd, NULL, "AT+CGDCONT=5,\"IPV4V6\",\"VZW800\"");
+          add_cmd(pd, NULL, "AT+CGDCONT=6,\"IPV4V6\",\"VZWEMERGENCY\"");
+      }
       if(!pd->cfg->skip_apn_set) add_cmd(pd, NULL, "AT+CGDCONT=%d,\"IP\",\"%s\"", pd->cfg->apn_slot, pd->cfg->apn);
       if(!pd->cfg->use_cgreg) add_cmd(pd, mgos_pppos_cgreg_creg_cb, "AT+CREG?");
       else add_cmd(pd, mgos_pppos_cgreg_creg_cb, "AT+CGREG?");
