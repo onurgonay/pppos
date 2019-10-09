@@ -954,6 +954,20 @@ bool mgos_pppos_run_cmds(int if_instance, const struct mgos_pppos_cmd *cmds) {
   return true;
 }
 
+static void mgos_pppos_set_default_interface(int ev, void *evd, void *arg){
+	struct mgos_net_event_data *evdata = (struct mgos_net_event_data *) evd;
+	if (ev == MGOS_NET_EV_IP_ACQUIRED && (evdata->if_type == MGOS_NET_IF_TYPE_ETHERNET || evdata->if_type == MGOS_NET_IF_TYPE_WIFI)) {
+		LOG(LL_DEBUG, ("%s GOT IP", evdata->if_type == MGOS_NET_IF_TYPE_WIFI ? "WIFI" : "ETHERNET"));
+		struct mgos_pppos_data *pd;
+		SLIST_FOREACH(pd, &s_pds, next) {
+			if(pd->pppif.flags & NETIF_FLAG_UP) {
+				LOG(LL_INFO, ("Setting PPPoS as default interface"));
+				netif_set_default(&(pd->pppif));
+			}
+		}
+	}
+}
+
 bool mgos_pppos_create(const struct mgos_config_pppos *cfg, int if_instance) {
   struct mgos_uart_config ucfg;
   mgos_uart_config_set_defaults(cfg->uart_no, &ucfg);
@@ -1039,6 +1053,20 @@ bool mgos_pppos_create(const struct mgos_config_pppos *cfg, int if_instance) {
   pd->cmd_mode = false;
   SLIST_INSERT_HEAD(&s_pds, pd, next);
   mgos_pppos_dispatch(pd);
+  if(mgos_sys_config_get_pppos_force_default_route()){
+      bool wifi = false;
+      bool eth = false;
+#if MGOS_HAVE_WIFI
+    wifi = mgos_sys_config_get_wifi_sta_enable() || mgos_sys_config_get_wifi_sta1_enable() || mgos_sys_config_get_wifi_sta2_enable();
+#endif
+#if MGOS_HAVE_ETHERNET
+    eth = mgos_sys_config_get_eth_enable();
+#endif
+    if(wifi || eth){
+        mgos_event_add_group_handler(MGOS_EVENT_GRP_NET, mgos_pppos_set_default_interface, NULL);
+        LOG(LL_ERROR, ("Setting handler so PPP can be the default interface"));
+    }
+  }
   return true;
 }
 
