@@ -349,6 +349,7 @@ static bool mgos_pppos_cpin_cb(void *cb_arg, bool ok, struct mg_str data) {
 
 static bool mgos_pppos_cgreg_creg_cb(void *cb_arg, bool ok, struct mg_str data) {
   struct mgos_pppos_data *pd = (struct mgos_pppos_data *) cb_arg;
+  struct mgos_pppos_reg_arg state = { .state = MGOS_PPPOS_REG_IDLE };
   if (!ok) {
     if(!pd->cfg->use_cgreg) LOG(LL_WARN, ("%s response to AT+CREG, proceeding anyway", "Error"));
     else LOG(LL_WARN, ("%s response to AT+CGREG, proceeding anyway", "Error"));
@@ -381,24 +382,31 @@ static bool mgos_pppos_cgreg_creg_cb(void *cb_arg, bool ok, struct mg_str data) 
     case 1:
       sts = "home";
       ok = true;
+      state.state = MGOS_PPPOS_REG_HOME;
       break;
     case 2:
       sts = "searching";
+      state.state = MGOS_PPPOS_REG_SEARCHING;
       break;
     case 3:
       sts = "denied";
+      state.state = MGOS_PPPOS_REG_DENIED;
       break;
     case 4:
       sts = "unknown";
+      state.state = MGOS_PPPOS_REG_UNKNOWN;
       break;
     case 5:
       ok = true;
       sts = "roaming";
+      state.state = MGOS_PPPOS_REG_ROAMING;
       break;
     default:
       sts = "???";
+      state.state = MGOS_PPPOS_REG_UNKNOWN;
       break;
   }
+  mgos_event_trigger(MGOS_PPPOS_REG_STATE, &state);
   if (ok) {
     LOG(LL_ERROR, ("Connected to mobile network (%s)", sts));
   } else {

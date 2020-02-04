@@ -41,7 +41,17 @@ bool mgos_pppos_dev_get_ip_info(int if_instance,
 enum mgos_pppos_event {
   MGOS_PPPOS_CMD_RESP = MGOS_PPPOS_BASE,  // ev_data: struct mgos_pppos_cmd_resp
   MGOS_PPPOS_INIT,                        // ev_data: NULL
-  MGOS_PPPOS_INFO,                        // ev_data: struct mgos_ppos_info_arg
+  MGOS_PPPOS_INFO,                        // ev_data: struct mgos_pppos_info_arg
+  MGOS_PPPOS_REG_STATE                    // ev_data: struct mgos_pppos_reg_arg  
+};
+
+enum mgos_reg_state {
+    MGOS_PPPOS_REG_IDLE,
+    MGOS_PPPOS_REG_HOME,
+    MGOS_PPPOS_REG_DENIED,
+    MGOS_PPPOS_REG_ROAMING,
+    MGOS_PPPOS_REG_SEARCHING,
+    MGOS_PPPOS_REG_UNKNOWN,
 };
 
 struct mgos_pppos_info_arg {
@@ -49,6 +59,10 @@ struct mgos_pppos_info_arg {
   struct mg_str imei;
   struct mg_str imsi;
   struct mg_str iccid;
+};
+
+struct mgos_pppos_reg_arg {
+  enum mgos_reg_state state;
 };
 
 /* Create PPPoS interface instance.
