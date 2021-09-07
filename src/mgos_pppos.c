@@ -334,7 +334,11 @@ static bool mgos_pppos_cpin_cb(void *cb_arg, bool ok, struct mg_str data) {
                   pd->imsi.p, (int) pd->iccid.len, pd->iccid.p));
   } else {
     LOG(LL_WARN,
-        ("SIM is not ready (%.*s), proceeding anyway", (int) st.len, st.p));
+        ("SIM22 is not ready (%.*s), proceeding anyway", (int) st.len, st.p));
+    LOG(LL_WARN,
+        ("SIM2v2 is not ready (%s), proceeding anyway", st.p));
+    LOG(LL_INFO, ("SIM22 is ready, IMSI: %.*s, ICCID: %.*s", (int) pd->imsi.len,
+                  pd->imsi.p, (int) pd->iccid.len, pd->iccid.p));  
     /* Proceed anyway, maybe we didn't get it right */
   }
   struct mgos_pppos_info_arg arg = {
