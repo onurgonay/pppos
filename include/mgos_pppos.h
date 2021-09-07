@@ -35,6 +35,8 @@ extern "C" {
  */
 bool mgos_pppos_dev_get_ip_info(int if_instance,
                                 struct mgos_net_ip_info *ip_info);
+  
+bool connected = false;
 
 #define MGOS_PPPOS_BASE MGOS_EVENT_BASE('P', 'o', 'S')
 
