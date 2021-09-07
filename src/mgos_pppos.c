@@ -414,8 +414,10 @@ static bool mgos_pppos_cgreg_creg_cb(void *cb_arg, bool ok, struct mg_str data) 
   }
   mgos_event_trigger(MGOS_PPPOS_REG_STATE, &state);
   if (ok) {
+	  myconnected = true;
     LOG(LL_ERROR, ("Connected to mobile network (%s)", sts));
   } else {
+	  myconnected = false;
     LOG(LL_ERROR, ("Not connected to mobile network, status %d (%s)", st, sts));
     pd->cmd_idx--;
     pd->delay = mgos_uptime() + 1.0;
