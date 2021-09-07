@@ -85,7 +85,9 @@ struct mgos_pppos_data {
 
   SLIST_ENTRY(mgos_pppos_data) next;
 };
-
+bool mgos_pppos_is_connected(void){
+	return myconnected;
+}
 static SLIST_HEAD(s_pds, mgos_pppos_data) s_pds = SLIST_HEAD_INITIALIZER(s_pds);
 
 /* If we fail to communicate with the modem at the specified rate,
