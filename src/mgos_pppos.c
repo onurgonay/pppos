@@ -189,6 +189,7 @@ static void mgos_pppos_status_cb(ppp_pcb *pcb, int err_code, void *arg) {
       break;
     }
     default: {
+      myconnected = false;
       LOG(LL_ERROR, ("Error %d (phase %d), reconnect", err_code, pcb->phase));
       pd->pppcb = NULL;
       /* ppp_close delivers PPPERR_USER, so proto will be freed. */
